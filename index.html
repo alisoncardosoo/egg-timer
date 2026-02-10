@@ -31,36 +31,60 @@
     </div>
   </div>
 
-  <p class="subtitle">Como vai querer sua gema hoje?</p>
+  <!-- Menu Timer / Histórico -->
+  <nav class="tabs" role="tablist">
+    <button type="button" class="tab is-active" data-tab="timer" onclick="showTab('timer')" aria-selected="true">Timer</button>
+    <button type="button" class="tab" data-tab="history" onclick="showTab('history')" aria-selected="false">Histórico</button>
+  </nav>
 
-  <!-- Grade com os 4 tipos de ovo (cada um inicia o timer com X segundos) -->
-  <div class="grid">
+  <!-- Aba Timer -->
+  <div id="timer-page" class="tab-panel">
+    <p class="subtitle">Como vai querer sua gema hoje?</p>
 
-    <div class="card" onclick="startTimer(180)" role="button" tabindex="0">
-      <img src="assets/eggs/egg1.png" alt="Extra Mole">
-      <p>Extra Mole</p>
+    <!-- Grade com os 4 tipos de ovo (cada um inicia o timer com X segundos) -->
+    <div id="egg-grid" class="grid">
+
+      <div class="card" onclick="startTimer(180, 'Extra Mole')" role="button" tabindex="0">
+        <img src="assets/eggs/egg1.png" alt="Extra Mole">
+        <p>Extra Mole</p>
+      </div>
+
+      <div class="card" onclick="startTimer(300, 'Mole')" role="button" tabindex="0">
+        <img src="assets/eggs/egg2.png" alt="Mole">
+        <p>Mole</p>
+      </div>
+
+      <div class="card" onclick="startTimer(420, 'Média')" role="button" tabindex="0">
+        <img src="assets/eggs/egg3.png" alt="Média">
+        <p>Média</p>
+      </div>
+
+      <div class="card" onclick="startTimer(600, 'Dura')" role="button" tabindex="0">
+        <img src="assets/eggs/egg4.png" alt="Dura">
+        <p>Dura</p>
+      </div>
+
     </div>
 
-    <div class="card" onclick="startTimer(300)" role="button" tabindex="0">
-      <img src="assets/eggs/egg2.png" alt="Mole">
-      <p>Mole</p>
+    <!-- Vista de cozimento: ovo animado + timer (aparece quando o usuário escolhe um tipo) -->
+    <div id="cooking-view" class="cooking-view hidden">
+      <div class="cooking-pan">
+        <div class="bubbles">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <img src="assets/eggs/egg2.png" alt="Ovo cozinhando" class="cooking-egg">
+      </div>
+      <h2 id="timer">00:00</h2>
     </div>
-
-    <div class="card" onclick="startTimer(420)" role="button" tabindex="0">
-      <img src="assets/eggs/egg3.png" alt="Média">
-      <p>Média</p>
-    </div>
-
-    <div class="card" onclick="startTimer(600)" role="button" tabindex="0">
-      <img src="assets/eggs/egg4.png" alt="Dura">
-      <p>Dura</p>
-    </div>
-
+    <p class="credits">Feito por: Alison Cardoso</p>
   </div>
 
-  <!-- Onde o cronômetro MM:SS é exibido -->
-  <h2 id="timer">00:00</h2>
-  <p class="credits">Feito por: Alison Cardoso</p>
+  <!-- Aba Histórico -->
+  <div id="history-page" class="tab-panel hidden">
+    <p class="subtitle">Seus ovos recentes</p>
+    <ul id="history-list" class="history-list" aria-label="Histórico de uso"></ul>
+    <p id="history-empty" class="history-empty hidden">Nenhum uso ainda. Escolha um ovo no Timer!</p>
+  </div>
 
 </div>
 
