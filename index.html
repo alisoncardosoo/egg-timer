@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Egg Timer</title>
 
+<!-- Ícone em abas e favoritos -->
 <link rel="icon" href="assets/icons/favicon.png" type="image/png">
+<!-- Manifest PWA: nome, ícones e tema ao "Adicionar à tela inicial" (Android/Chrome) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffe08a">
+<!-- Ícone ao salvar na tela inicial no iPhone/iPad (Safari) -->
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Egg Timer">
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -60,7 +68,7 @@
 <div id="ready-modal" class="modal" aria-hidden="true">
   <div class="modal-content">
     <!-- Troque pelo seu GIF em assets/gifs/ready.gif se preferir -->
-    <img src="https://giphy.com/gifs/pixels-eggs-paulrobertson-l0JMaNj0xZ6cDFLvq" alt="Ovo pronto" class="modal-gif">
+    <img src="gif-final.gif" alt="Ovo pronto" class="modal-gif">
     <p class="modal-text">Sua gema está pronta!</p>
     <button type="button" class="modal-btn" onclick="closeReadyModal()">Fechar</button>
   </div>
