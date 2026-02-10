@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Egg Timer</title>
+
+<link rel="icon" href="assets/icons/favicon.png" type="image/png">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- Janela principal do app (estilo desktop) -->
+<div class="window">
+
+  <!-- Barra de título com "botões" decorativos -->
+  <div class="titlebar">
+    <span>Egg Timer &lt;3</span>
+    <div class="controls">
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+
+  <p class="subtitle">Como vai querer sua gema hoje?</p>
+
+  <!-- Grade com os 4 tipos de ovo (cada um inicia o timer com X segundos) -->
+  <div class="grid">
+
+    <div class="card" onclick="startTimer(180)" role="button" tabindex="0">
+      <img src="assets/eggs/egg1.png" alt="Extra Mole">
+      <p>Extra Mole</p>
+    </div>
+
+    <div class="card" onclick="startTimer(300)" role="button" tabindex="0">
+      <img src="assets/eggs/egg2.png" alt="Mole">
+      <p>Mole</p>
+    </div>
+
+    <div class="card" onclick="startTimer(420)" role="button" tabindex="0">
+      <img src="assets/eggs/egg3.png" alt="Média">
+      <p>Média</p>
+    </div>
+
+    <div class="card" onclick="startTimer(600)" role="button" tabindex="0">
+      <img src="assets/eggs/egg4.png" alt="Dura">
+      <p>Dura</p>
+    </div>
+
+  </div>
+
+  <!-- Onde o cronômetro MM:SS é exibido -->
+  <h2 id="timer">00:00</h2>
+  <p class="credits">Feito por: Alison Cardoso</p>
+
+</div>
+
+<!-- Modal que aparece quando o cronômetro termina (GIF + mensagem) -->
+<div id="ready-modal" class="modal" aria-hidden="true">
+  <div class="modal-content">
+    <!-- Troque pelo seu GIF em assets/gifs/ready.gif se preferir -->
+    <img src="https://giphy.com/gifs/pixels-eggs-paulrobertson-l0JMaNj0xZ6cDFLvq" alt="Ovo pronto" class="modal-gif">
+    <p class="modal-text">Sua gema está pronta!</p>
+    <button type="button" class="modal-btn" onclick="closeReadyModal()">Fechar</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
