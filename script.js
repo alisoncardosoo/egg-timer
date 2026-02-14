@@ -11,11 +11,96 @@ let vibrationInterval = null;
 // Se já pedimos permissão de notificação (para não pedir de novo a cada timer)
 let notificationPermissionAsked = false;
 
-/**
- * Inicia o cronômetro com o tempo em segundos.
- * Usa hora de término (endTime) para continuar correto quando a aba fica em segundo plano.
- */
 const HISTORY_KEY = "eggTimerHistory";
+
+// Firebase (opcional): só usa se firebase-config.js existir e tiver config
+let firebaseAuth = null;
+let firebaseDb = null;
+const FIRESTORE_COLLECTION = "history";
+
+if (typeof firebase !== "undefined" && window.firebaseConfig) {
+  // Verifica se o usuário configurou o Firebase (tirou os placeholders)
+  const isConfigured = window.firebaseConfig.apiKey !== "SUA_API_KEY" &&
+    window.firebaseConfig.projectId !== "SEU_PROJECT_ID";
+
+  if (!isConfigured) {
+    console.warn("Firebase não está configurado. O login não funcionará.");
+    // Opcional: Desabilitar botão ou avisar na UI
+    document.getElementById("btn-login").addEventListener("click", () => {
+      alert("O Firebase não está configurado. Abra o arquivo firebase-config.js e adicione suas credenciais.");
+    });
+  } else {
+    try {
+      firebase.initializeApp(window.firebaseConfig);
+      firebaseAuth = firebase.auth();
+      firebaseDb = firebase.firestore();
+      document.querySelector(".auth-area").classList.remove("hidden");
+      firebaseAuth.onAuthStateChanged(updateAuthUI);
+      // Completar login por redirecionamento (usado no Safari/iOS)
+      firebaseAuth.getRedirectResult().catch((err) => console.warn("Redirect result:", err));
+      document.getElementById("btn-login").addEventListener("click", loginWithGoogle);
+      document.getElementById("btn-logout").addEventListener("click", logout);
+    } catch (e) {
+      console.warn("Firebase init:", e);
+    }
+  }
+}
+
+function updateAuthUI(user) {
+  const btnLogin = document.getElementById("btn-login");
+  const userEmail = document.getElementById("user-email");
+  const btnLogout = document.getElementById("btn-logout");
+  if (user) {
+    btnLogin.classList.add("hidden");
+    userEmail.textContent = user.email || user.displayName || "Conectado";
+    userEmail.classList.remove("hidden");
+    btnLogout.classList.remove("hidden");
+  } else {
+    btnLogin.classList.remove("hidden");
+    userEmail.classList.add("hidden");
+    btnLogout.classList.add("hidden");
+  }
+}
+
+function loginWithGoogle() {
+  if (!firebaseAuth) return;
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  function showError(err) {
+    console.warn("Login:", err.code, err.message);
+    let msg = "Não foi possível entrar. Tente de novo.";
+    if (window.location.protocol === "file:") {
+      msg = "O login com Google não funciona quando aberto direto do arquivo (file://). Você precisa rodar em um servidor local (localhost).";
+    } else if (err.code === "auth/unauthorized-domain") {
+      msg = "Este endereço não está autorizado no Firebase. Adicione o domínio em: Authentication → Settings → Authorized domains (ex.: localhost ou seu domínio).";
+    } else if (err.code === "auth/operation-not-allowed") {
+      msg = "Login com Google não está ativado. Ative em: Firebase Console → Authentication → Sign-in method.";
+    } else if (err.code) {
+      msg += " (" + err.code + ")";
+    }
+    alert(msg);
+  }
+
+  // PWA aberto pelo ícone na tela inicial (iOS): redirect não é suportado → usa popup
+  const isStandalone = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+  if (isStandalone) {
+    firebaseAuth.signInWithPopup(provider).catch(showError);
+    return;
+  }
+
+  // No navegador normal: redirect (evita bloqueio de popup no Safari)
+  firebaseAuth.signInWithRedirect(provider).catch((err) => {
+    if (err.code === "auth/operation-not-supported-in-this-environment") {
+      firebaseAuth.signInWithPopup(provider).catch(showError);
+    } else {
+      showError(err);
+    }
+  });
+}
+
+function logout() {
+  if (firebaseAuth) firebaseAuth.signOut();
+}
 
 /**
  * Mostra a aba Timer ou Histórico.
@@ -34,7 +119,7 @@ function showTab(tabName) {
 }
 
 /**
- * Retorna o histórico salvo (array de { tipo, dateTime }).
+ * Retorna o histórico do localStorage (array de { tipo, dateTime }).
  */
 function getHistory() {
   try {
@@ -45,28 +130,63 @@ function getHistory() {
 }
 
 /**
- * Adiciona um uso ao histórico e salva no localStorage.
+ * Retorna o histórico: da nuvem (Firestore) se estiver logado, senão do localStorage.
+ */
+async function getHistoryAsync() {
+  const user = firebaseAuth && firebaseAuth.currentUser;
+  if (user && firebaseDb) {
+    try {
+      const snap = await firebaseDb.collection(FIRESTORE_COLLECTION)
+        .where("userId", "==", user.uid)
+        .orderBy("dateTime", "desc")
+        .limit(200)
+        .get();
+      return snap.docs.map((d) => {
+        const data = d.data();
+        return { tipo: data.tipo, dateTime: data.dateTime };
+      });
+    } catch (e) {
+      console.warn("Firestore read:", e);
+      return getHistory();
+    }
+  }
+  return getHistory();
+}
+
+/**
+ * Adiciona um uso ao histórico (localStorage e, se logado, Firestore).
  */
 function addToHistory(tipo) {
+  const dateTime = new Date().toISOString();
   const list = getHistory();
-  list.push({ tipo, dateTime: new Date().toISOString() });
+  list.push({ tipo, dateTime });
   localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+
+  const user = firebaseAuth && firebaseAuth.currentUser;
+  if (user && firebaseDb) {
+    firebaseDb.collection(FIRESTORE_COLLECTION).add({
+      userId: user.uid,
+      tipo,
+      dateTime
+    }).catch((e) => console.warn("Firestore write:", e));
+  }
 }
 
 /**
  * Preenche a lista de histórico na tela (tipo, data e hora).
  */
-function renderHistory() {
-  const list = getHistory();
+async function renderHistory() {
   const container = document.getElementById("history-list");
   const emptyEl = document.getElementById("history-empty");
   container.innerHTML = "";
+  emptyEl.classList.add("hidden");
+
+  const list = await getHistoryAsync();
   const sorted = [...list].sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
   if (sorted.length === 0) {
     emptyEl.classList.remove("hidden");
     return;
   }
-  emptyEl.classList.add("hidden");
   sorted.forEach((item) => {
     const li = document.createElement("li");
     const d = new Date(item.dateTime);
@@ -102,7 +222,7 @@ function startTimer(seconds, tipo) {
     preparedAlarm.play().then(() => {
       preparedAlarm.pause();
       preparedAlarm.currentTime = 0;
-    }).catch(() => {});
+    }).catch(() => { });
   }
   document.getElementById("egg-grid").classList.add("hidden");
   document.getElementById("cooking-view").classList.remove("hidden");
@@ -146,7 +266,7 @@ function triggerAlarm() {
   preparedAlarm = null;
   currentAlarm.loop = true;
   currentAlarm.currentTime = 0;
-  currentAlarm.play().catch(() => {});
+  currentAlarm.play().catch(() => { });
   // Vibração repetida até o usuário fechar o modal (API de Vibração do navegador)
   if ("vibrate" in navigator) {
     navigator.vibrate(300);
@@ -203,6 +323,16 @@ function closeReadyModal() {
     vibrationInterval = null;
     if ("vibrate" in navigator) navigator.vibrate(0); // cancela vibração em andamento
   }
+  document.getElementById("egg-grid").classList.remove("hidden");
+  document.getElementById("cooking-view").classList.add("hidden");
+}
+
+function stopTimer() {
+  if (countdown) {
+    clearInterval(countdown);
+    countdown = null;
+  }
+  endTime = null;
   document.getElementById("egg-grid").classList.remove("hidden");
   document.getElementById("cooking-view").classList.add("hidden");
 }
