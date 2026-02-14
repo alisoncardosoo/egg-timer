@@ -4,6 +4,8 @@ let countdown;
 let endTime = null;
 // Referência do áudio do alarme (para poder parar quando o usuário fechar o modal)
 let currentAlarm = null;
+// Áudio já "desbloqueado" por gesto do usuário (necessário no iOS para tocar quando o timer terminar)
+let preparedAlarm = null;
 // Intervalo da vibração (para poder parar quando o usuário fechar o modal)
 let vibrationInterval = null;
 // Se já pedimos permissão de notificação (para não pedir de novo a cada timer)
@@ -92,6 +94,16 @@ function startTimer(seconds, tipo) {
     notificationPermissionAsked = true;
     Notification.requestPermission();
   }
+  // iOS/Safari: áudio só toca se tiver sido "desbloqueado" por um gesto do usuário.
+  // Criamos e damos play/pause aqui (no clique) para poder tocar depois quando o timer terminar.
+  if (!preparedAlarm) {
+    preparedAlarm = new Audio("assets/sounds/alarm.mp3");
+    preparedAlarm.load();
+    preparedAlarm.play().then(() => {
+      preparedAlarm.pause();
+      preparedAlarm.currentTime = 0;
+    }).catch(() => {});
+  }
   document.getElementById("egg-grid").classList.add("hidden");
   document.getElementById("cooking-view").classList.remove("hidden");
   clearInterval(countdown);
@@ -129,21 +141,18 @@ function startTimer(seconds, tipo) {
 // Dispara o alarme e o modal (evita duplicar se visibilitychange e setInterval dispararem juntos)
 function triggerAlarm() {
   if (currentAlarm) return; // já disparou
-  currentAlarm = new Audio("assets/sounds/alarm.mp3");
+  // Usa o áudio já desbloqueado no gesto (iOS) ou cria um novo (outros navegadores)
+  currentAlarm = preparedAlarm || new Audio("assets/sounds/alarm.mp3");
+  preparedAlarm = null;
   currentAlarm.loop = true;
-  currentAlarm.play();
+  currentAlarm.currentTime = 0;
+  currentAlarm.play().catch(() => {});
   // Vibração repetida até o usuário fechar o modal (API de Vibração do navegador)
   if ("vibrate" in navigator) {
     navigator.vibrate(300);
     vibrationInterval = setInterval(() => {
       navigator.vibrate(300);
     }, 600);
-  }
-  // Reinicia o GIF para ele animar ao abrir o modal (quando fica em display:none, o GIF não anima)
-  const modalGif = document.querySelector("#ready-modal .modal-gif");
-  if (modalGif) {
-    const baseSrc = (modalGif.getAttribute("src") || "gif-final.gif").split("?")[0];
-    modalGif.src = baseSrc + "?t=" + Date.now();
   }
   document.getElementById("ready-modal").classList.add("is-open");
   document.getElementById("ready-modal").setAttribute("aria-hidden", "false");
