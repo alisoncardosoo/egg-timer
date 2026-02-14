@@ -325,6 +325,25 @@ body {
     color: #5c4a1a;
 }
 
+/* Input do modal de username */
+.username-input {
+    width: 80%;
+    padding: 10px;
+    margin: 0 auto 16px;
+    border: 2px solid #b88c34;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-align: center;
+    outline: none;
+    font-family: monospace;
+    display: block;
+}
+
+.username-input:focus {
+    border-color: #8b6b29;
+    background-color: #fffdf5;
+}
+
 .modal-btn {
     background: #ffd36e;
     border: 2px solid #b88c34;
@@ -362,6 +381,14 @@ body {
     margin-bottom: 8px;
     font-size: 0.9rem;
     color: #5c4a1a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-content {
+    display: flex;
+    flex-direction: column;
 }
 
 .history-list .history-tipo {
@@ -373,6 +400,21 @@ body {
 .history-list .history-datetime {
     font-size: 0.85rem;
     color: #8b7355;
+}
+
+.btn-delete-history {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.2s;
+    margin-left: 10px;
+}
+
+.btn-delete-history:hover {
+    background: rgba(255, 0, 0, 0.1);
 }
 
 .history-empty {
