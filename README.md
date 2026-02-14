@@ -17,32 +17,32 @@ Projeto focado em **experiência do usuário, design de interface personalizada 
 * ⏱️ **Timer** para 4 pontos de cozimento: Extra Mole (3 min), Mole (5 min), Média (7 min), Dura (10 min)
 * 🎮 Interface retrô pixel art personalizada
 * 📱 Design responsivo (mobile-first)
-* ⚡ Instalável como aplicativo (PWA)
-* 🔔 Alarme sonoro ao finalizar (com suporte a tocar no iOS)
-* 📳 Vibração em dispositivos compatíveis
-* 🔔 Notificação no dispositivo quando o timer termina (“Sua gema está pronta!”)
-* 📋 **Aba Histórico** com lista de ovos recentes (tipo + data/hora)
-* 💾 Persistência local com LocalStorage
-* ☁️ **Histórico na nuvem (opcional)** — login com Google e sincronização via Firebase (Firestore); acesse o histórico de qualquer lugar com sua conta
-* 🌐 Funcionamento offline com Service Worker
-* ⏳ Timer preciso em segundo plano (usa hora de término, não apenas intervalos)
-* 🧩 UI inspirada em janelas vintage
+* ⚡ Instalável como aplicativo (PWA) e funcionamento offline
+* 🔔 Alarme sonoro, vibração e notificação ao finalizar
+* 🔋 **Modo Background Mobile**: O timer continua rodando e toca o alarme mesmo com a tela bloqueada (Android/iOS)
+* 👤 **Login Personalizado**: Escolha seu "Nome de Chef" ao logar com o Google
+* 📋 **Aba Histórico**:
+    * Sincronização em tempo real via Firebase Firestore (se logado)
+    * Armazenamento local (LocalStorage) se offline/deslogado
+    * **Exclusão de itens**: Apague registros antigos do histórico
+* 🧩 UI inspirada em janelas vintage com animações CSS
 
 ---
 
 ## 🛠️ Tecnologias
 
-* HTML5
-* CSS3 (layout responsivo + UI customizada)
-* JavaScript Vanilla
-* Progressive Web App (PWA)
-* Service Workers
-* Firebase (opcional): Authentication (Google) e Firestore para histórico na nuvem
-* Web APIs:
-  * Audio API
-  * Vibrate API
-  * LocalStorage
-  * Notifications API
+* HTML5 Semantic
+* CSS3 (Grid, Flexbox, Animations, Media Queries)
+* JavaScript (ES6+)
+* **PWA & APIs**:
+    * Service Workers (Cache offline)
+    * Web Audio API (Sons)
+    * Vibration API (Feedback tátil)
+    * Screen Wake Lock API (Manter tela ativa)
+    * Notifications API
+* **Firebase (Backend-as-a-Service)**:
+    * Authentication (Google Sign-In)
+    * Firestore Database (NoSQL Realtime)
 
 ---
 
@@ -56,6 +56,7 @@ Projeto focado em **experiência do usuário, design de interface personalizada 
  ├── manifest.json
  ├── service-worker.js
  ├── firebase-config.js
+ ├── FIREBASE-SETUP.md (Guia de configuração)
  └── assets/
      ├── eggs/
      ├── icons/
@@ -64,55 +65,49 @@ Projeto focado em **experiência do usuário, design de interface personalizada 
 
 ---
 
-## 💻 Como rodar localmente
+## 💻 Como rodar e configurar
 
-### Método rápido
-
-Abra o arquivo `index.html` diretamente no navegador.
-
-### Ambiente de desenvolvimento (recomendado)
-
-Para testar login com Google e histórico na nuvem, use um servidor local (Firebase Auth exige origem HTTP/HTTPS):
+1. Clone o projeto
+2. Para usar as funcionalidades de **Login e Nuvem**, é necessário configurar o Firebase.
+   - Siga o guia passo a passo em: **[FIREBASE-SETUP.md](FIREBASE-SETUP.md)**
+3. Para rodar localmente (necessário servidor HTTP para o Auth funcionar):
 
 ```bash
-npx serve
+# Com Python 3
+python3 -m http.server
+
+# Ou com Node.js
+npx http-server .
 ```
 
-Abra o endereço local exibido no terminal.
+4. Acesse `http://localhost:8000` (ou a porta indicada).
 
 ---
 
 ## 📱 Instalar como aplicativo
 
-1. Acesse a versão publicada
-2. Abra no navegador do celular
+1. Acesse a versão publicada no celular
+2. Toque em **Compartilhar** (iOS) ou **Menu** (Android)
 3. Toque em **Adicionar à tela inicial**
-4. O app será instalado como aplicativo nativo
 
 ---
 
 ## 🎯 Objetivos do projeto
 
-* Prática de desenvolvimento front-end
-* Construção de Progressive Web Apps
-* Criação de interfaces personalizadas
-* Implementação de recursos offline
-* Simulação de produto real para portfólio
+* Prática de desenvolvimento front-end com JavaScript puro
+* Integração com serviços de Backend (Firebase)
+* Utilização de APIs modernas de navegador (Wake Lock, AudioContext)
+* Construção de PWA offline-first
 
 ---
 
-## ☁️ Histórico na nuvem (Firebase)
+## 📈 Melhorias implementadas recentemente
 
-Para salvar o histórico online e acessar de qualquer dispositivo com sua conta Google, siga o passo a passo em **[FIREBASE-SETUP.md](FIREBASE-SETUP.md)**. Sem configurar o Firebase, o app continua funcionando normalmente com histórico apenas local.
-
----
-
-## 📈 Possíveis melhorias futuras
-
-* 🎨 Animações da gema cozinhando
-* 🧠 Preferências do usuário
-* 🌙 Modo escuro
-* 🎮 Animações pixel
+* [x] Login com Google e persistência de dados
+* [x] Escolha de nome de usuário personalizado
+* [x] Exclusão de itens do histórico
+* [x] Suporte a background timer (tela bloqueada)
+* [ ] Modo escuro (futuro)
 
 ---
 
