@@ -1,103 +1,119 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Egg Timer</title>
 
-<!-- Ícone em abas e favoritos -->
-<link rel="icon" href="assets/icons/favicon.png" type="image/png">
-<!-- Manifest PWA: nome, ícones e tema ao "Adicionar à tela inicial" (Android/Chrome) -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffe08a">
-<!-- Ícone ao salvar na tela inicial no iPhone/iPad (Safari) -->
-<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Egg Timer">
-<link rel="stylesheet" href="style.css">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Egg Timer</title>
+
+  <!-- Ícone em abas e favoritos -->
+  <link rel="icon" href="assets/icons/favicon.png" type="image/png">
+  <!-- Manifest PWA: nome, ícones e tema ao "Adicionar à tela inicial" (Android/Chrome) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffe08a">
+  <!-- Ícone ao salvar na tela inicial no iPhone/iPad (Safari) -->
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Egg Timer">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- Janela principal do app (estilo desktop) -->
-<div class="window">
+  <!-- Janela principal do app (estilo desktop) -->
+  <div class="window">
 
-  <!-- Barra de título com "botões" decorativos -->
-  <div class="titlebar">
-    <span>Egg Timer &lt;3</span>
-    <div class="controls">
-      <div></div>
-      <div></div>
-    </div>
-  </div>
-
-  <!-- Menu Timer / Histórico -->
-  <nav class="tabs" role="tablist">
-    <button type="button" class="tab is-active" data-tab="timer" onclick="showTab('timer')" aria-selected="true">Timer</button>
-    <button type="button" class="tab" data-tab="history" onclick="showTab('history')" aria-selected="false">Histórico</button>
-  </nav>
-
-  <!-- Aba Timer -->
-  <div id="timer-page" class="tab-panel">
-    <p class="subtitle">Como vai querer sua gema hoje?</p>
-
-    <!-- Grade com os 4 tipos de ovo (cada um inicia o timer com X segundos) -->
-    <div id="egg-grid" class="grid">
-
-      <div class="card" onclick="startTimer(180, 'Extra Mole')" role="button" tabindex="0">
-        <img src="assets/eggs/egg1.png" alt="Extra Mole">
-        <p>Extra Mole</p>
+    <!-- Barra de título com "botões" decorativos e login -->
+    <div class="titlebar">
+      <span>Egg Timer &lt;3</span>
+      <div class="auth-area hidden">
+        <button type="button" id="btn-login" class="btn-login">Entrar com Google</button>
+        <span id="user-email" class="user-email hidden"></span>
+        <button type="button" id="btn-logout" class="btn-logout hidden">Sair</button>
       </div>
-
-      <div class="card" onclick="startTimer(300, 'Mole')" role="button" tabindex="0">
-        <img src="assets/eggs/egg2.png" alt="Mole">
-        <p>Mole</p>
+      <div class="controls">
+        <div></div>
+        <div></div>
       </div>
-
-      <div class="card" onclick="startTimer(420, 'Média')" role="button" tabindex="0">
-        <img src="assets/eggs/egg3.png" alt="Média">
-        <p>Média</p>
-      </div>
-
-      <div class="card" onclick="startTimer(600, 'Dura')" role="button" tabindex="0">
-        <img src="assets/eggs/egg4.png" alt="Dura">
-        <p>Dura</p>
-      </div>
-
     </div>
 
-    <!-- Vista de cozimento: ovo animado + timer (aparece quando o usuário escolhe um tipo) -->
-    <div id="cooking-view" class="cooking-view hidden">
-      <div class="cooking-pan">
-        <div class="bubbles">
-          <span></span><span></span><span></span><span></span><span></span>
+    <!-- Menu Timer / Histórico -->
+    <nav class="tabs" role="tablist">
+      <button type="button" class="tab is-active" data-tab="timer" onclick="showTab('timer')"
+        aria-selected="true">Timer</button>
+      <button type="button" class="tab" data-tab="history" onclick="showTab('history')"
+        aria-selected="false">Histórico</button>
+    </nav>
+
+    <!-- Aba Timer -->
+    <div id="timer-page" class="tab-panel">
+      <p class="subtitle">Como vai querer sua gema hoje?</p>
+
+      <!-- Grade com os 4 tipos de ovo (cada um inicia o timer com X segundos) -->
+      <div id="egg-grid" class="grid">
+
+        <div class="card" onclick="startTimer(180, 'Extra Mole')" role="button" tabindex="0">
+          <img src="assets/eggs/egg1.png" alt="Extra Mole">
+          <p>Extra Mole</p>
         </div>
-        <img src="assets/eggs/egg2.png" alt="Ovo cozinhando" class="cooking-egg">
+
+        <div class="card" onclick="startTimer(300, 'Mole')" role="button" tabindex="0">
+          <img src="assets/eggs/egg2.png" alt="Mole">
+          <p>Mole</p>
+        </div>
+
+        <div class="card" onclick="startTimer(420, 'Média')" role="button" tabindex="0">
+          <img src="assets/eggs/egg3.png" alt="Média">
+          <p>Média</p>
+        </div>
+
+        <div class="card" onclick="startTimer(600, 'Dura')" role="button" tabindex="0">
+          <img src="assets/eggs/egg4.png" alt="Dura">
+          <p>Dura</p>
+        </div>
+
       </div>
-      <h2 id="timer">00:00</h2>
+
+      <!-- Vista de cozimento: ovo animado + timer (aparece quando o usuário escolhe um tipo) -->
+      <div id="cooking-view" class="cooking-view hidden">
+        <div class="cooking-pan">
+          <div class="bubbles">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <img src="assets/eggs/egg2.png" alt="Ovo cozinhando" class="cooking-egg">
+        </div>
+        <h2 id="timer">00:00</h2>
+        <button type="button" id="btn-stop-timer" class="btn-stop" onclick="stopTimer()">Cancelar</button>
+      </div>
+      <p class="credits">Feito por: Alison Cardoso</p>
     </div>
-    <p class="credits">Feito por: Alison Cardoso</p>
+
+    <!-- Aba Histórico -->
+    <div id="history-page" class="tab-panel hidden">
+      <p class="subtitle">Seus ovos recentes</p>
+      <ul id="history-list" class="history-list" aria-label="Histórico de uso"></ul>
+      <p id="history-empty" class="history-empty hidden">Nenhum uso ainda. Escolha um ovo no Timer!</p>
+    </div>
+
   </div>
 
-  <!-- Aba Histórico -->
-  <div id="history-page" class="tab-panel hidden">
-    <p class="subtitle">Seus ovos recentes</p>
-    <ul id="history-list" class="history-list" aria-label="Histórico de uso"></ul>
-    <p id="history-empty" class="history-empty hidden">Nenhum uso ainda. Escolha um ovo no Timer!</p>
+  <!-- Modal que aparece quando o cronômetro termina -->
+  <div id="ready-modal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <img src="assets/icons/favicon.png" alt="Ovo pronto" class="modal-img">
+      <p class="modal-text">Sua gema está pronta!</p>
+      <button type="button" class="modal-btn" onclick="closeReadyModal()">Fechar</button>
+    </div>
   </div>
 
-</div>
 
-<!-- Modal que aparece quando o cronômetro termina (GIF + mensagem) -->
-<div id="ready-modal" class="modal" aria-hidden="true">
-  <div class="modal-content">
-    <!-- Troque pelo seu GIF em assets/gifs/ready.gif se preferir -->
-    <img src="assets/icons/favicon.png" alt="Ovo pronto" class="modal-img">
-    <p class="modal-text">Sua gema está pronta!</p>
-    <button type="button" class="modal-btn" onclick="closeReadyModal()">Fechar</button>
-  </div>
-</div>
 
-<script src="script.js"></script>
+  <!-- Firebase (opcional: crie firebase-config.js a partir de firebase-config.example.js) -->
+  <script src="firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="script.js"></script>
 </body>
+
 </html>
