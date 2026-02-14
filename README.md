@@ -14,14 +14,18 @@ Projeto focado em **experiência do usuário, design de interface personalizada 
 
 ## 🚀 Funcionalidades
 
-* ⏱️ Timer para diferentes pontos de cozimento
+* ⏱️ **Timer** para 4 pontos de cozimento: Extra Mole (3 min), Mole (5 min), Média (7 min), Dura (10 min)
 * 🎮 Interface retrô pixel art personalizada
 * 📱 Design responsivo (mobile-first)
 * ⚡ Instalável como aplicativo (PWA)
-* 🔔 Alarme sonoro ao finalizar
+* 🔔 Alarme sonoro ao finalizar (com suporte a tocar no iOS)
 * 📳 Vibração em dispositivos compatíveis
-* 💾 Persistência com LocalStorage
+* 🔔 Notificação no dispositivo quando o timer termina (“Sua gema está pronta!”)
+* 📋 **Aba Histórico** com lista de ovos recentes (tipo + data/hora)
+* 💾 Persistência local com LocalStorage
+* ☁️ **Histórico na nuvem (opcional)** — login com Google e sincronização via Firebase (Firestore); acesse o histórico de qualquer lugar com sua conta
 * 🌐 Funcionamento offline com Service Worker
+* ⏳ Timer preciso em segundo plano (usa hora de término, não apenas intervalos)
 * 🧩 UI inspirada em janelas vintage
 
 ---
@@ -29,15 +33,16 @@ Projeto focado em **experiência do usuário, design de interface personalizada 
 ## 🛠️ Tecnologias
 
 * HTML5
-* CSS3 (Layout responsivo + UI customizada)
+* CSS3 (layout responsivo + UI customizada)
 * JavaScript Vanilla
 * Progressive Web App (PWA)
 * Service Workers
+* Firebase (opcional): Authentication (Google) e Firestore para histórico na nuvem
 * Web APIs:
-
   * Audio API
   * Vibrate API
   * LocalStorage
+  * Notifications API
 
 ---
 
@@ -50,6 +55,7 @@ Projeto focado em **experiência do usuário, design de interface personalizada 
  ├── script.js
  ├── manifest.json
  ├── service-worker.js
+ ├── firebase-config.js
  └── assets/
      ├── eggs/
      ├── icons/
@@ -62,17 +68,15 @@ Projeto focado em **experiência do usuário, design de interface personalizada 
 
 ### Método rápido
 
-Abra o arquivo:
-
-index.html
-
-diretamente no navegador.
+Abra o arquivo `index.html` diretamente no navegador.
 
 ### Ambiente de desenvolvimento (recomendado)
 
-Instale Node.js e execute:
+Para testar login com Google e histórico na nuvem, use um servidor local (Firebase Auth exige origem HTTP/HTTPS):
 
+```bash
 npx serve
+```
 
 Abra o endereço local exibido no terminal.
 
@@ -97,11 +101,15 @@ Abra o endereço local exibido no terminal.
 
 ---
 
+## ☁️ Histórico na nuvem (Firebase)
+
+Para salvar o histórico online e acessar de qualquer dispositivo com sua conta Google, siga o passo a passo em **[FIREBASE-SETUP.md](FIREBASE-SETUP.md)**. Sem configurar o Firebase, o app continua funcionando normalmente com histórico apenas local.
+
+---
+
 ## 📈 Possíveis melhorias futuras
 
-* 🔔 Notificações push
 * 🎨 Animações da gema cozinhando
-* 📊 Histórico de uso
 * 🧠 Preferências do usuário
 * 🌙 Modo escuro
 * 🎮 Animações pixel
