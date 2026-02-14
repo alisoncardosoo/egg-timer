@@ -11,6 +11,13 @@ let vibrationInterval = null;
 // Se já pedimos permissão de notificação (para não pedir de novo a cada timer)
 let notificationPermissionAsked = false;
 
+// Controle de Wake Lock (manter a tela ligada)
+let wakeLock = null;
+
+// Áudio silencioso para manter o app rodando em background no iOS/Android
+let silentAudio = null;
+const SILENT_MP3 = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAAtAAAB5AAAAAAAAAAAAAA//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+
 const HISTORY_KEY = "eggTimerHistory";
 
 // Firebase (opcional): só usa se firebase-config.js existir e tiver config
@@ -50,16 +57,68 @@ function updateAuthUI(user) {
   const btnLogin = document.getElementById("btn-login");
   const userEmail = document.getElementById("user-email");
   const btnLogout = document.getElementById("btn-logout");
+
   if (user) {
     btnLogin.classList.add("hidden");
-    userEmail.textContent = user.email || user.displayName || "Conectado";
-    userEmail.classList.remove("hidden");
     btnLogout.classList.remove("hidden");
+
+    // Verifica se já tem username salvo no Firestore
+    if (firebaseDb) {
+      firebaseDb.collection("users").doc(user.uid).get()
+        .then((doc) => {
+          if (doc.exists && doc.data().username) {
+            userEmail.textContent = doc.data().username;
+            userEmail.classList.remove("hidden");
+          } else {
+            // Se não tem username, mostra o modal para escolher
+            document.getElementById("username-modal").classList.add("is-open");
+            document.getElementById("username-modal").setAttribute("aria-hidden", "false");
+            userEmail.classList.add("hidden");
+          }
+        })
+        .catch((err) => {
+          console.warn("Erro ao buscar perfil:", err);
+          // Fallback para o nome do Google
+          userEmail.textContent = user.displayName || user.email;
+          userEmail.classList.remove("hidden");
+        });
+    } else {
+      userEmail.textContent = user.displayName || user.email;
+      userEmail.classList.remove("hidden");
+    }
+
   } else {
     btnLogin.classList.remove("hidden");
     userEmail.classList.add("hidden");
     btnLogout.classList.add("hidden");
   }
+}
+
+function saveUsername() {
+  const input = document.getElementById("username-input");
+  const name = input.value.trim();
+  if (!name) return alert("Por favor, digite um nome.");
+
+  const user = firebaseAuth.currentUser;
+  if (!user || !firebaseDb) return;
+
+  firebaseDb.collection("users").doc(user.uid).set({
+    username: name,
+    email: user.email
+  }, { merge: true })
+    .then(() => {
+      // Atualiza UI
+      document.getElementById("user-email").textContent = name;
+      document.getElementById("user-email").classList.remove("hidden");
+
+      // Fecha modal
+      document.getElementById("username-modal").classList.remove("is-open");
+      document.getElementById("username-modal").setAttribute("aria-hidden", "true");
+    })
+    .catch((err) => {
+      console.error("Erro ao salvar nome:", err);
+      alert("Erro ao salvar o nome. Tente novamente.");
+    });
 }
 
 function loginWithGoogle() {
@@ -123,7 +182,12 @@ function showTab(tabName) {
  */
 function getHistory() {
   try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    // Garante que todo item local tenha um ID (usamos dateTime se não tiver)
+    return list.map(item => ({
+      ...item,
+      id: item.id || item.dateTime
+    }));
   } catch {
     return [];
   }
@@ -143,7 +207,11 @@ async function getHistoryAsync() {
         .get();
       return snap.docs.map((d) => {
         const data = d.data();
-        return { tipo: data.tipo, dateTime: data.dateTime };
+        return {
+          id: d.id, // ID do Firestore
+          tipo: data.tipo,
+          dateTime: data.dateTime
+        };
       });
     } catch (e) {
       console.warn("Firestore read:", e);
@@ -197,9 +265,42 @@ async function renderHistory() {
       hour: "2-digit",
       minute: "2-digit"
     });
-    li.innerHTML = `<span class="history-tipo">${escapeHtml(item.tipo)}</span><span class="history-datetime">${dataHora}</span>`;
+
+    li.innerHTML = `
+      <div class="history-content">
+        <span class="history-tipo">${escapeHtml(item.tipo)}</span>
+        <span class="history-datetime">${dataHora}</span>
+      </div>
+      <button class="btn-delete-history" onclick="deleteHistoryItem('${item.id}')" title="Excluir">
+        🗑️
+      </button>
+    `;
     container.appendChild(li);
   });
+}
+
+async function deleteHistoryItem(id) {
+  if (!confirm("Tem certeza que deseja excluir este item?")) return;
+
+  const user = firebaseAuth && firebaseAuth.currentUser;
+
+  // Tenta deletar do Firestore se estiver logado
+  if (user && firebaseDb) {
+    try {
+      await firebaseDb.collection(FIRESTORE_COLLECTION).doc(id).delete();
+      // Se der erro (ex: não existe no firestore), cai no catch e tenta local
+    } catch (e) {
+      console.warn("Erro ao deletar do Firestore ou item é local:", e);
+    }
+  }
+
+  // Deleta do LocalStorage (sempre tenta, para garantir sincronia ou itens desconectados)
+  const list = getHistory();
+  const newList = list.filter(item => item.id !== id && item.dateTime !== id);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(newList));
+
+  // Re-renderiza a lista
+  renderHistory();
 }
 
 function escapeHtml(text) {
@@ -208,8 +309,59 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// --- Background Support Functions ---
+
+async function requestWakeLock() {
+  if ("wakeLock" in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => {
+        // console.log("Wake Lock released");
+      });
+      // console.log("Wake Lock active");
+    } catch (err) {
+      console.warn("Wake Lock error:", err);
+    }
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) {
+    wakeLock.release();
+    wakeLock = null;
+  }
+}
+
+function startBackgroundSupport() {
+  // Toca áudio silencioso em loop para forçar o modo "media playback"
+  if (!silentAudio) {
+    silentAudio = new Audio(SILENT_MP3);
+    silentAudio.loop = true;
+  }
+  silentAudio.play().catch(() => { });
+}
+
+function stopBackgroundSupport() {
+  if (silentAudio) {
+    silentAudio.pause();
+    silentAudio.currentTime = 0;
+  }
+}
+
+// Re-solicita o Wake Lock se a página voltar a ficar visível e o timer estiver rodando
+document.addEventListener("visibilitychange", async () => {
+  if (wakeLock !== null && document.visibilityState === "visible") {
+    await requestWakeLock();
+  }
+});
+
 function startTimer(seconds, tipo) {
   if (tipo) addToHistory(tipo);
+
+  // Ativa suporte a background
+  requestWakeLock();
+  startBackgroundSupport();
+
   if (!notificationPermissionAsked && "Notification" in window) {
     notificationPermissionAsked = true;
     Notification.requestPermission();
@@ -251,6 +403,9 @@ function startTimer(seconds, tipo) {
     if (timeLeft <= 0) {
       clearInterval(countdown);
       endTime = null;
+      // Para o suporte a background (silêncio) antes do alarme
+      releaseWakeLock();
+      stopBackgroundSupport();
       triggerAlarm();
       return;
     }
@@ -325,6 +480,8 @@ function closeReadyModal() {
   }
   document.getElementById("egg-grid").classList.remove("hidden");
   document.getElementById("cooking-view").classList.add("hidden");
+  releaseWakeLock();
+  stopBackgroundSupport();
 }
 
 function stopTimer() {
@@ -335,4 +492,6 @@ function stopTimer() {
   endTime = null;
   document.getElementById("egg-grid").classList.remove("hidden");
   document.getElementById("cooking-view").classList.add("hidden");
+  releaseWakeLock();
+  stopBackgroundSupport();
 }
